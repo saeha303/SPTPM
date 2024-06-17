@@ -1,0 +1,39 @@
+temp-0 to 4
+humidity-0 to 4
+wind_speed-0 to 4
+rain_1h-1,3
+pressure-1 to 3
+clouds_all-0 to 4
+generation biomass-0 to 4
+generation fossil brown coal/lignite-1 to 4
+generation fossil gas-0 to 4
+generation fossil hard coal-0 to 4
+generation fossil oil-0 to 4
+generation hydro pumped storage consumption-1 to 4
+generation hydro run_of_river and poundage-0 to 4
+generation hydro water reservoir-0 to 4
+generation nuclear-0 to 4
+generation other-0 to 4
+generation other renewable-0 to 4
+generation solar-0 to 4
+generation waste-0 to 4
+generation wind onshore-0 to 4
+total load actual-0 to 4
+
+not time series:
+sId-0 to 1460, H time granularity
+G is 23-finer than H, why did they decide to take it 23 though? Data of one day, why not 24 then?
+
+1420066800, 1420124400 are not in start for H1. What do we do when we have missing data for a time instant?
+
+Maybe dipshit's do know how to mine patterns,
+but they don't have the slightest idea how to code like a normal human being
+what's wrong with the variable names man?
+minDensity should be minden throughout the whole code,
+how did it become minPS?
+God, human being are the dumbest shit on this planet's surface
+
+HFM 72
+INF 48
+RE 24
+SC 17
