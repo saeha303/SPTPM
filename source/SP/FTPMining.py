@@ -302,6 +302,7 @@ class FTPMining:
 
                         for current_instance in current_list_instances:
                             for two_instance in two_list_instances:
+                                # cde and ce, so c and c, e and e
                                 if current_instance[index] == two_instance[0] and current_instance[-1] == two_instance[-1]:
                                     if sequenceID in pattern_sID_instances:
                                         pattern_sID_instances[sequenceID].append(current_instance)
@@ -324,7 +325,20 @@ class FTPMining:
         return patterns
     
     # =========================================================================== Our code
+    def binary_search(arr, target):
+        low = 0
+        high = len(arr) - 1
 
+        while low <= high:
+            mid = (low + high) // 2
+            if arr[mid] == target:
+                return mid
+            elif arr[mid] < target:
+                low = mid + 1
+            else:
+                high = mid - 1
+
+        return -1
     def Find1PeriodicPatterns(self):
         
         for id_event in self.Nodes['level1']:
@@ -337,45 +351,56 @@ class FTPMining:
                 # flattened_list=list(chain.from_iterable(eligible_seasons))
                 
                 for season_granules in eligible_seasons:
+                    temp_start_end_list=[]
+                    for sID in season_granules:
+                        current_instances=self.EventTable[id_event].seq_eventInsIds[sID]
+                        for instance in current_instances:
+                            if instance.start==instance.end:
+                                temp_start_end_list.append(instance.start)
+                            else:
+                                temp_start_end_list.append(instance.start)
+                                temp_start_end_list.append(instance.end)
                     H_start=season_granules[0]
                     H_end=season_granules[-1]
+
                     total_elements = len(season_granules)
-                    last=math.floor((total_elements*self.fineness-self.minoccur)/2)
-                    # idx=self.EventTable[id_event][H1]
-                    # start=idx[0].start
+                    last=math.floor((total_elements*self.fineness)/self.minoccur)
+                    period_start=self.minper*self.G_granularity
+                    period_end=(last+1)*self.G_granularity
 
-
-                    # for sID in season_granules:
-                    #     instance_indexes=self.EventTable[id_event][sID]
-                    #     for i in instance_indexes:
-                    #         self.EventInstanceTable[i].
-
-                        
-
-                    outer_start=minper*self.G_granularity
-                    outer_end=(last+1)*self.G_granularity
                     inner_start=self.lowestG+H_start*self.fineness*self.G_granularity
-                    inner_end=self.lowestG+(H_end+1)*self.fineness*self.G_granularity
-                    for i in range(outer_start,outer_end,self.G_granularity):
-                        for j in range(inner_start,inner_end,self.G_granularity):
+                    end=self.lowestG+(H_end+1)*self.fineness*self.G_granularity
+
+                    g_start_idx=self.EventTable[id_event].seq_eventInsIds[H_start]
+                    g_start_instance=self.EventInstanceTable[g_start_idx]
+                    p=g_start_instance.start
+                    for period in range(period_start,period_end,self.G_granularity):
+                        inner_end=inner_start+period
+                        for start_pos in range(p,p+period,self.G_granularity):
+                            sID_index=0
+                            perfect_periodicity=0
                             count=0
-                            H_granule=((j-self.lowestG)/self.G_granularity)//(self.fineness-1)
-                            spans=self.EventTable[id_event][H_granule]
-                            perfect_periodicity=math.ceil(((inner_end-j)/self.G_granularity)/i)
-                            for k in range(j,inner_end,i):
-                                for span in spans:
-                                    if span.start<=k<span.end:
+                            for i in (start_pos,end,period):
+                                current_H=season_granules[sID_index]
+                                H_granule_of_i=((i-self.lowestG)/self.G_granularity)//(self.fineness-1)
+                                if H_granule_of_i!=current_H:
+                                    sID_index+=1
+                                else:
+                                    perfect_periodicity+=1
+                                    result=self.binary_search(temp_start_end_list,i)
+                                    if result!=-1:
                                         count+=1
                             conf=count/perfect_periodicity
                             if conf>=self.minconf:
-                                if candidates is None:
-                                    candidates[id_event][i]=[j]
-                                else:
-                                    candidates[id_event][i].append(j)
+                                if id_event not in candidates:
+                                    candidates[id_event] = {}
+                                if period not in candidates[id_event]:
+                                    candidates[id_event][period] = []
+                                candidates[id_event][period].append(start_pos)
                 node.perPatterns=candidates
                 
-
-    # def FindKPeriodicPatterns(self):
-
+        
+    def FindKPeriodicPatterns(self):
+        getKsp(self.maxPer, self.EventInstanceTable, self.fineness, minsup, self.minoccur, self.granularity_of_G, pattern, self.maxPatternSize, self.minper)
 
  

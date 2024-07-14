@@ -1,10 +1,8 @@
 from SP.FTPMining import FTPMining
 from Model import *
 import csv
-import time
 import os
 import json
-import psutil
 
 def TAR(config):
     datapath = config.Dataset
@@ -45,7 +43,7 @@ def TAR(config):
     FTP.FindKFrequentPatterns()
     # ====================================================================== Our code starts here
     FTP.Find1PeriodicPatterns()
-    # FTP.FindKPeriodicPatterns()
+    FTP.FindKPeriodicPatterns()
 
     if not os.path.exists(resultDir): 
         os.makedirs(resultDir) 
