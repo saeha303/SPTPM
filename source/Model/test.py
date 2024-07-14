@@ -17,7 +17,7 @@ def sid_to_season(sid_list, maxper):
     for sid in sid_list[1:]:
         per = sid - first
 
-        if per <= maxPer:
+        if per <= maxper:
             if count in season:
                 season[count].append(sid)
             else:
@@ -44,18 +44,21 @@ def get_gcd(diff_list, value):
     if len(diff_list) == 0:
         return idx
     for index, diff in enumerate(diff_list):
-        if math.gcd(diff[0], value) !== 1:
+        if math.gcd(diff[0], value) != 1:
             idx = index
             break
     return idx
 
 #for k-pattern timestamp iteration
 def generate_pairs(n):
+    # 2d matrix
     pairs = []
     for a in range(2, n + 1):
         pairs.append((a - 1, a))
         for b in range(1, a - 1):
             pairs.append((b, a))
+
+            # so for 123, pairs will be 2,1//3,2//3,1
     return pairs
 
 #adjust for k pattern
@@ -67,10 +70,10 @@ def getKsp(maxper, event_instance_table, fineness, minsup, minoccur, granularity
 
     pairs = generate_pairs(maxPatternSize)
     
-    relation_symbol = pattern.get_list_relation()
-    list_instances = pattern.get_instance_at_sequence_id(sid)
+    # relation_symbol = pattern.get_list_relation()
+    # list_instances = pattern.get_instance_at_sequence_id(sid)
     
-    if len(list_instances) == 1:
+    # if len(list_instances) == 1:
         
 
     for count, season in seasons:
@@ -80,6 +83,7 @@ def getKsp(maxper, event_instance_table, fineness, minsup, minoccur, granularity
             list_instances = pattern.get_instance_at_sequence_id(sid)
         
             if len(list_instances) == 1:
+                # not for the case 101: len(list_instances) == 1
                 pair_count = 0
                 size = 1
                 start = -1
@@ -89,8 +93,9 @@ def getKsp(maxper, event_instance_table, fineness, minsup, minoccur, granularity
                     split_relation = relation_symbol[:size]
                     relation_symbol = relation_symbol[size:]
                     relation = split_relation[0]
-                    obj1 = event_instance_table[list_instances[pairs[pair_count][0]]]
-                    obj2 = event_instance_table[list_instances[pairs[pair_count][1]]]
+                    # not clear what's going on here, len(list_instance)=1, so how are we accessing below?
+                    obj1 = event_instance_table[list_instances[pairs[0][0]]]
+                    obj2 = event_instance_table[list_instances[pairs[0][1]]]
                     #check the timing
                     if start == -1:
                         start = obj1.start
@@ -143,6 +148,7 @@ def getKsp(maxper, event_instance_table, fineness, minsup, minoccur, granularity
                     start_times[count] = [times]
 
             else: 
+                # case 101
                 for instances in list_instances:
                     pair_count = 0
                     size = 1
@@ -218,7 +224,7 @@ def getKsp(maxper, event_instance_table, fineness, minsup, minoccur, granularity
         per_list = {} #for a particular season, contains cursor as key and diff_list as value
         for events in season[:max_count+1]:
             diff_list = []
-            for next_events in season[cursor:]
+            for next_events in season[cursor:]:
                 for event1time in range(events.early_start, events.latest_start, granularity_of_G):
                     for event2time in range(next_events.early_start, next_events.latest_start, granularity_of_G):
                         diff = event2time - event1time
