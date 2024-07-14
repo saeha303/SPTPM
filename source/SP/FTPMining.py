@@ -342,14 +342,16 @@ class FTPMining:
     def Find1PeriodicPatterns(self):
         
         for id_event in self.Nodes['level1']:
+            print(self.Nodes['level1'][id_event])
             # season means node here, supposed to be only one node for each event (chosen ones, ehm)
-            for node in self.Nodes['level1'][id_event]:
-                candidates={}
-                # eligible_seasons is a 2d matrix with each row having the H granules
-                temp_seasons=node.to_dict(self.event_table,self.maxPer,self.minPS)
-                eligible_seasons=temp_seasons['patterns']
-                # flattened_list=list(chain.from_iterable(eligible_seasons))
-                
+            # for node in self.Nodes['level1'][id_event]:
+            node=self.Nodes['level1'][id_event]
+            candidates={}
+            # eligible_seasons is a 2d matrix with each row having the H granules
+            temp_seasons=node.to_dict(self.EventTable,self.maxPer,self.minPS)
+            eligible_seasons=temp_seasons['patterns']
+            # flattened_list=list(chain.from_iterable(eligible_seasons))
+            if not eligible_seasons: 
                 for season_granules in eligible_seasons:
                     temp_start_end_list=[]
                     for sID in season_granules:
@@ -397,10 +399,10 @@ class FTPMining:
                                 if period not in candidates[id_event]:
                                     candidates[id_event][period] = []
                                 candidates[id_event][period].append(start_pos)
-                node.perPatterns=candidates
+            node.perPatterns=candidates
                 
         
-    def FindKPeriodicPatterns(self):
-        getKsp(self.maxPer, self.EventInstanceTable, self.fineness, minsup, self.minoccur, self.granularity_of_G, pattern, self.maxPatternSize, self.minper)
+    # def FindKPeriodicPatterns(self):
+    #     getKsp(self.maxPer, self.EventInstanceTable, self.fineness, minsup, self.minoccur, self.granularity_of_G, pattern, self.maxPatternSize, self.minper)
 
  

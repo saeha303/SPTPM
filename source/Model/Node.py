@@ -39,14 +39,17 @@ class Node:
 
         # =================================================
         event_name = ','.join(event_labels)
+        # print(pattern_result)
+        # if pattern_result:
+        result['name_node'] = event_name
+        result['patterns'] = pattern_result
 
-        if pattern_result:
-            result['name_node'] = event_name
-            result['patterns'] = pattern_result
+        return result
 
-        # return result
-
-        return pattern_result
+        # return pattern_result
 
     def __str__(self):
-        return ','.join(self.ids_event)
+        # return ','.join(self.ids_event)
+        return (f"Node(ids_event={self.ids_event}, "
+                f"bitmap={self.bitmap}, "
+                f"patterns={self.patterns})")
