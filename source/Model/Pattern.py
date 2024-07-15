@@ -5,7 +5,7 @@ import copy
 
 
 class Pattern:
-    def __init__(self, list_relation, seq_eventInsIds):
+    def __init__(self, list_relation, seq_eventInsIds,perPatterns=None):
         '''
         list_relation: list [Relation.Follows, Relation.Overlaps]
         seq_eventInsIds: {
@@ -18,6 +18,7 @@ class Pattern:
         self.bitmap = tuple(self.seq_eventInsIds.keys())
         self.isSeasonal = False 
         self.SR = 0 
+        self.per_patterns=perPatterns
 
     def get_bitmap(self):
         return self.seq_eventInsIds.keys()
@@ -64,9 +65,14 @@ class Pattern:
         result_dict['SR'] = self.SR
         # we will need only this
         result_dict['periodic_intervals'] = Utils.getIPI_PS(self.get_bitmap(), maxper, minPS)
-
+        # print(result_dict['periodic_intervals'])
         # result_dict = Utils.getIPI_PS(self.get_bitmap(), maxper, minPS)
-
+        if self.per_patterns:
+            result=[]
+            for period, start_times in self.per_patterns.items():
+                result .append(f"{{period: {period}, start_time: {start_times}}}")
+            # result = result.rstrip('\n')
+            result_dict['seasonal-periodic patterns']=result
         if event_instance_table: 
             time_interval = {}
             for sid in self.seq_eventInsIds:

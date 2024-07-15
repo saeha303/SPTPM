@@ -1,2 +1,2 @@
 access source
-python ESTPM.py -i ../data/demo.csv -o result/ -maxper 2 -minden 3 -minsr 2 -mindist 4 -maxdist 10 -mps 3
+python ESTPM.py -i ../data/demo.csv -o result/ -maxper 2 -minden 3 -minsr 2 -mindist 4 -maxdist 10 -mps 3 -granularity_of_G 1 -fineness 3

@@ -35,7 +35,7 @@ class Node:
                 temp_obj = pattern.to_dict(event_labels, maxper, minPS,
                                       event_instance_table)
                 obj=temp_obj['periodic_intervals']
-                pattern_result.append(obj)
+                pattern_result.append(temp_obj)
 
         # =================================================
         event_name = ','.join(event_labels)
