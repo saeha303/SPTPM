@@ -60,9 +60,9 @@ class Utils:
             if candidateESR is None:
                 # initializing
                 candidateESR = [value]
-            else:                
+            else:  
                 perESR = (value) - (candidateESR[-1])
-                if  perESR <= maxper:
+                if  0<perESR <= maxper:
                     # last entry satisfies maxPeriod
                     candidateESR.append(value)
                 else:
@@ -77,9 +77,9 @@ class Utils:
                     # initializing
                     candidate = [value]
                 continue            
-
             per = (value) - (candidate[-1])
-            if  per <= maxper:
+            
+            if  0<per <= maxper:
                 candidate.append(value)
             else:
                 ps = len(candidate)
@@ -99,14 +99,14 @@ class Utils:
     # get seasons, only seasons satisfying maxPeriod and minDensity
     def getIPI_PS(sID_list, maxper, minPS): 
         sID_list = sorted(sID_list) 
-        result = {}
+        result = []
         sID_list.append(-1)
         # initializing with first H value
         candidate = [sID_list[0]] 
         # starting from 2nd H value
         for value in sID_list[1:]:
             per = (value) - (candidate[-1])
-            if per <= maxper:
+            if 0<per <= maxper:
                 candidate.append(value)
             else:
                 ps = len(candidate)
@@ -114,7 +114,7 @@ class Utils:
                 if ps >= minPS:
                     # can't be string
                     # result[str((candidate[0], candidate[-1]))] = ps
-                    result.append((candidate[0], candidate[-1]))
+                    result.append(candidate.copy())
                 candidate = [value]   
         return result
 

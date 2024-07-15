@@ -39,7 +39,7 @@ max_pattern_size = int(args['maxpatternsize'])
 mindist = int(args['mindistance'])
 maxdist = int(args['maxdistance'])
 # ===================================
-minper=float(args['minper'])
+minper=int(args['minper'])
 minconf=float(args['minconf'])
 minoccur=int(args['minoccur'])
 granularity_of_G=int(args['granularity_of_G'])

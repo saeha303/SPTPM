@@ -78,6 +78,7 @@ class FTPMining:
                 node = Node(tuple([id_event]), bitmap, list_pattern_candidates)
                 # 'level1' means HLH1
                 self.Nodes['level1'][(id_event)] = node
+                # print(node)
 
     def Find2FrequentPatterns(self):
         # 'level2' means HLH2
@@ -325,7 +326,7 @@ class FTPMining:
         return patterns
     
     # =========================================================================== Our code
-    def binary_search(arr, target):
+    def binary_search(self,arr, target):
         low = 0
         high = len(arr) - 1
 
@@ -342,21 +343,29 @@ class FTPMining:
     def Find1PeriodicPatterns(self):
         
         for id_event in self.Nodes['level1']:
-            print(self.Nodes['level1'][id_event])
+            # print(id_event)
             # season means node here, supposed to be only one node for each event (chosen ones, ehm)
             # for node in self.Nodes['level1'][id_event]:
             node=self.Nodes['level1'][id_event]
             candidates={}
             # eligible_seasons is a 2d matrix with each row having the H granules
             temp_seasons=node.to_dict(self.EventTable,self.maxPer,self.minPS)
-            eligible_seasons=temp_seasons['patterns']
+            temp_obj=temp_seasons['patterns']
+            eligible_seasons=[]
+            if temp_obj:
+                eligible_seasons=temp_obj[0]['periodic_intervals']
+            # print(eligible_seasons) 
             # flattened_list=list(chain.from_iterable(eligible_seasons))
-            if not eligible_seasons: 
+            if eligible_seasons:
+                # print("am def here")
                 for season_granules in eligible_seasons:
+                    # print("am here")
                     temp_start_end_list=[]
                     for sID in season_granules:
                         current_instances=self.EventTable[id_event].seq_eventInsIds[sID]
-                        for instance in current_instances:
+                        # print(current_instances)
+                        for instance_idx in current_instances:
+                            instance=self.EventInstanceTable[instance_idx]
                             if instance.start==instance.end:
                                 temp_start_end_list.append(instance.start)
                             else:
@@ -364,34 +373,46 @@ class FTPMining:
                                 temp_start_end_list.append(instance.end)
                     H_start=season_granules[0]
                     H_end=season_granules[-1]
-
+                    # print(temp_start_end_list)
                     total_elements = len(season_granules)
                     last=math.floor((total_elements*self.fineness)/self.minoccur)
+                    # print(last)
                     period_start=self.minper*self.G_granularity
                     period_end=(last+1)*self.G_granularity
-
+                    # print(period_start,period_end)
                     inner_start=self.lowestG+H_start*self.fineness*self.G_granularity
                     end=self.lowestG+(H_end+1)*self.fineness*self.G_granularity
-
+                    # print(end)
                     g_start_idx=self.EventTable[id_event].seq_eventInsIds[H_start]
-                    g_start_instance=self.EventInstanceTable[g_start_idx]
+                    g_start_instance=self.EventInstanceTable[g_start_idx[0]]
                     p=g_start_instance.start
                     for period in range(period_start,period_end,self.G_granularity):
+                        # print("period:")
+                        # print(period)
                         inner_end=inner_start+period
+                        # print("start_pos:")
                         for start_pos in range(p,p+period,self.G_granularity):
+                            # print(start_pos, end)
                             sID_index=0
                             perfect_periodicity=0
                             count=0
-                            for i in (start_pos,end,period):
-                                current_H=season_granules[sID_index]
-                                H_granule_of_i=((i-self.lowestG)/self.G_granularity)//(self.fineness-1)
-                                if H_granule_of_i!=current_H:
-                                    sID_index+=1
-                                else:
-                                    perfect_periodicity+=1
-                                    result=self.binary_search(temp_start_end_list,i)
-                                    if result!=-1:
-                                        count+=1
+                            # print("i:")
+                            for i in range(start_pos,end,period):
+                                # print(i)
+                                # current_H=season_granules[sID_index]
+                                # H_granule_of_i=int(((i-self.lowestG)/self.G_granularity)//(self.fineness))
+                                # print("H")
+                                # print(current_H,H_granule_of_i)
+                                # if H_granule_of_i!=current_H:
+                                #     # from here
+                                #     sID_index+=1
+                                # else:
+                                perfect_periodicity+=1
+                                result=self.binary_search(temp_start_end_list,i)
+                                if result!=-1:
+                                    count+=1
+                            # print("end of i")
+                            print(count,perfect_periodicity)
                             conf=count/perfect_periodicity
                             if conf>=self.minconf:
                                 if id_event not in candidates:
@@ -399,6 +420,9 @@ class FTPMining:
                                 if period not in candidates[id_event]:
                                     candidates[id_event][period] = []
                                 candidates[id_event][period].append(start_pos)
+                    pattern=node.get_patterns()    
+                    pattern[0].per_patterns=candidates[id_event]
+            print(candidates)
             node.perPatterns=candidates
                 
         
