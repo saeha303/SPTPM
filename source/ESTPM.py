@@ -18,7 +18,7 @@ parser.add_argument('-maxdist', '--maxdistance', help='max distance', default=10
 # ==========================================
 parser.add_argument('-minper', '--minper', help='minimum period', default=2)
 parser.add_argument('-minconf', '--minconf', help='minimum confidence', default=0.5)
-parser.add_argument('-minoccur', '--minoccur', help='minimum occurence', default=3)
+parser.add_argument('-minoccur', '--minoccur', help='minimum occurence', default=2)
 parser.add_argument('-granularity_of_G', '--granularity_of_G', help='granularity_of_G', default=3600)
 parser.add_argument('-fineness', '--fineness', help='fineness', default=24)
 
