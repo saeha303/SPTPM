@@ -426,7 +426,295 @@ class FTPMining:
             node.perPatterns=candidates
                 
         
-    # def FindKPeriodicPatterns(self):
-    #     getKsp(self.maxPer, self.EventInstanceTable, self.fineness, minsup, self.minoccur, self.granularity_of_G, pattern, self.maxPatternSize, self.minper)
+    def FindKPeriodicPatterns(self):
+        level = 2
+        while self.maxPatternSize == -1 or level <= self.maxPatternSize:
+            level_name = 'level{}'.format(level)
+            nodes = self.Nodes[level_name]
+            for id_event in nodes:
+                node=nodes[id_event]
+                patterns = node.get_patterns()
+                for pattern in patterns:
+                    if pattern.isSeasonal == True:
+                        self.getKsp(self.maxPer, self.EventInstanceTable, self.fineness, self.minconf, self.minoccur, self.G_granularity, pattern, level, self.minper)
+            level += 1
 
+    def sid_to_season(self, sid_list, maxper):
+        season={}
+        count=0
+        first=sid_list[0]
+        for sid in sid_list[1:]:
+            per = sid - first
+
+            if per <= maxper:
+                if count in season:
+                    season[count].append(sid)
+                else:
+                    season[count] = [sid]
+            else:
+                count+=1
+                season[count] = [sid]
+
+            first = sid
+        return season
+
+    def get_multiple(self, diff_list, value):
+        idx = -1
+        if len(diff_list) == 0:
+            return idx
+        for index, diff in enumerate(diff_list):
+            if value % diff[0] == 0:
+                idx = index
+                break
+        return idx
+
+    def get_gcd(self, diff_list, value):
+        idx = -1
+        if len(diff_list) == 0:
+            return idx
+        for index, diff in enumerate(diff_list):
+            if math.gcd(diff[0], value) != 1:
+                idx = index
+                break
+        return idx
+
+    #for k-pattern timestamp iteration
+    def generate_pairs(self, n):
+        # 2d matrix
+        pairs = []
+        for a in range(2, n + 1):
+            pairs.append((a - 1, a))
+            for b in range(1, a - 1):
+                pairs.append((b, a))
+
+                # so for 123, pairs will be 2,1//3,2//3,1
+        return pairs
+
+    #adjust for k pattern
+    def getKsp(self, maxper, event_instance_table, fineness, minconf, minoccur, granularity_of_G, pattern, level, minper):
+        start_times = {} # contains season number as key and Per_ds object as value
+        sid_list = list(pattern.get_bitmap())
+        seasons = self.sid_to_season(sid_list, maxper)
+        total_support_ps = {} #for each season, keep the count of events
+
+        pairs = self.generate_pairs(level)
+
+        for count, season in seasons.items():
+            ts_count = 0 #count number of events in a season
+            for sid in season:
+                relation_symbol = pattern.get_list_relation()
+                list_instances = pattern.get_instance_at_sequence_id(sid)
+            
+                if len(list_instances) == 1:
+                    # not for the case 101: len(list_instances) == 1
+                    pair_count = 0
+                    size = 1
+                    start = -1
+                    end = -1
+                    time3 = -1
+                    while(relation_symbol):
+                        split_relation = relation_symbol[:size]
+                        relation_symbol = relation_symbol[size:]
+                        relation = split_relation[0]
+                        obj1 = event_instance_table[list_instances[0][pairs[pair_count][0]-1]]
+                        obj2 = event_instance_table[list_instances[0][pairs[pair_count][1]-1]]
+                        #check the timing
+                        if start == -1:
+                            start = obj1.start
+                            time3 = start
+                            end = obj2.end
+
+                        if obj2.end < end:
+                            end = obj2.end
+
+                        #find latest starting time
+                        if relation is Relation.Follows:
+                            temp_time3 = obj1.end - granularity_of_G
+                        elif relation is Relation.Contains:
+                            temp_time3 = obj2.end - granularity_of_G
+                        elif relation is Relation.Overlaps:
+                            temp_time3 = obj2.start - granularity_of_G
+                        
+                        if temp_time3 >= start and temp_time3 < end and temp_time3 <= time3: #latest starting time
+                            time3 = temp_time3
+
+                        ts_count += 1
+                        pair_count += 1
+                        for i in range(0, size-1):
+                            relation = split_relation[i+1]
+                            obj1 = event_instance_table[list_instances[0][pairs[pair_count][0]-1]]
+                            obj2 = event_instance_table[list_instances[0][pairs[pair_count][1]-1]]
+                            #check the timing
+                            if obj2.end < end:
+                                end = obj2.end
+
+                            if relation is Relation.Follows:
+                                temp_time3 = obj1.end - granularity_of_G
+                            elif relation is Relation.Contains:
+                                temp_time3 = obj2.end - granularity_of_G
+                            elif relation is Relation.Overlaps:
+                                temp_time3 = obj2.start - granularity_of_G
+                            
+                            if temp_time3 >= start and temp_time3 < end and temp_time3 <= time3:
+                                time3 = temp_time3
+                            
+                            ts_count += 1
+                            pair_count += 1
+                        size += 1
+                    times = Per_ds(start, time3, list_instances)
+
+                    if count in start_times:
+                        start_times[count].append(times)
+                    else:
+                        start_times[count] = [times]
+
+                else: 
+                    # case 101
+                    for instances in list_instances:
+                        pair_count = 0
+                        size = 1
+                        start = -1
+                        end = -1
+                        time3 = -1
+                        while(relation_symbol):
+                            split_relation = relation_symbol[:size]
+                            relation_symbol = relation_symbol[size:]
+                            relation = split_relation[0]
+                            obj1 = event_instance_table[instances[pairs[pair_count][0]-1]]
+                            obj2 = event_instance_table[instances[pairs[pair_count][1]-1]]
+                            #check the timing
+                            if start == -1:
+                                start = obj1.start
+                                time3 = start
+                                end = obj2.end
+
+                            if obj2.end < end:
+                                end = obj2.end
+
+                            if relation is Relation.Follows:
+                                temp_time3 = obj1.end - granularity_of_G
+                            elif relation is Relation.Contains:
+                                temp_time3 = obj2.end - granularity_of_G
+                            elif relation is Relation.Overlaps:
+                                temp_time3 = obj2.start - granularity_of_G
+                            
+                            if temp_time3 >= start and temp_time3 < end and temp_time3 <= time3:
+                                time3 = temp_time3
+
+                            ts_count += 1
+                            pair_count += 1
+                            for i in range(0, size-1):
+                                relation = split_relation[i+1]
+                                obj1 = event_instance_table[instances[pairs[pair_count][0]-1]]
+                                obj2 = event_instance_table[instances[pairs[pair_count][1]-1]]
+                                #check the timing
+                                if obj2.end < end:
+                                    end = obj2.end
+
+                                if relation is Relation.Follows:
+                                    temp_time3 = obj1.end - granularity_of_G
+                                elif relation is Relation.Contains:
+                                    temp_time3 = obj2.end - granularity_of_G
+                                elif relation is Relation.Overlaps:
+                                    temp_time3 = obj2.start - granularity_of_G
+                                
+                                if temp_time3 >= start and temp_time3 < end and temp_time3 <= time3:
+                                    time3 = temp_time3
+                                ts_count += 1
+                                pair_count += 1
+                            size += 1
+                        times = Per_ds(start, time3, list_instances)
+                        if count in start_times:
+                            start_times[count].append(times)
+                        else:
+                            start_times[count] = [times]
+            total_support_ps[count] = ts_count
+            #print(start_times)
+        #print(total_support_ps)
+
+        #check if periodic, need to adjust according to the seasons ds
+        all_sp_list = {} #store seasonal periodic patterns for each season
+        sp_count = 0 #counts how many seasonal periodic patterns have been found
+
+        for count, season in start_times.items():
+            max_count = int(len(season) - len(season) * minconf) #minconf is a conf given in decimal, less than 1
+            #print(max_count)
+            cursor = 1
+            per_list = {} #for a particular season, contains cursor as key and diff_list as value
+            for events in season[:max_count+1]:
+                diff_list = {}
+                for next_events in season[cursor:]:
+                    #print('here?')
+                    for event1time in range(events.early_start, events.latest_start+granularity_of_G, granularity_of_G):
+                        diff_list[event1time] = []
+                        for event2time in range(next_events.early_start, next_events.latest_start+granularity_of_G, granularity_of_G):
+                            diff = event2time - event1time
+                            if diff < minper:
+                                continue
+
+                            idx_m = self.get_multiple(diff_list[event1time], diff)
+                            idx_g = self.get_gcd(diff_list[event1time], diff)
+
+                            if idx_m == -1 and idx_g == -1: #if no multiplier or gcd exists
+                                if diff > maxper*fineness*granularity_of_G: #diff is outside of periodicity
+                                    continue
+                                else:
+                                    #diff_ds = SP_list(diff, event2time)
+                                    #diff_list[event1time] = [diff_ds]
+                                    diff_list[event1time] = [diff]
+
+                            elif idx_m != -1: #multiple is in priority
+                                last = diff_list[idx_m][-1]
+                                if (diff - last) > maxper*fineness*granularity_of_G:
+                                    continue
+                                else:
+                                    #diff_ds = SP_list(diff, event2time)
+                                    #diff_list[event1time][idx_m].append(diff_ds)
+                                    diff_list[event1time][idx_m].append(diff)
+
+                            elif idx_g != -1: #check gcd
+                                last = diff_list[idx_g][-1]
+                                if (diff - last) > maxper*fineness*granularity_of_G:
+                                    continue
+                                else:
+                                    #diff_ds = SP_list(diff, event2time)
+                                    #diff_list[event1time][idx_g].append(diff_ds)
+                                    diff_list[event1time][idx_g].append(diff)
+
+                per_list[cursor] = diff_list  
+                cursor += 1 
+            all_sp_list[count] = per_list    
+        print(all_sp_list)
+        #find support in each season. if threshold is reached, increase sp_count
+        #keep a ds to store the periodic timestamps
+        candidates = {}
+        for count, pers in all_sp_list.items():
+            is_sp = False
+            for all_diffs in pers.values():
+                #print(all_diffs)
+                for time, diffs in all_diffs.items():
+                    conf = (len(diffs)+1)/total_support_ps[count]
+                    #print(conf)
+                    if conf >= minconf:
+                        
+                        if len(diffs) == 0:
+                            continue
+                        elif len(diffs)==1:
+                            period = diffs[0]
+                        else:
+                            period = math.gcd(diffs[0], diffs[1])
+
+                        is_sp = True
+
+                        if period not in candidates:
+                            candidates[period] = []
+                        candidates[period].append(time)
+            if is_sp == True:
+                sp_count += 1
+
+        print(minoccur)
+        #if sp_count >= minseason, then the pattern is seasonal peridic
+        if sp_count >= minoccur:
+            print('herehere')
+            pattern.per_patterns = candidates
  
