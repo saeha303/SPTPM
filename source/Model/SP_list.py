@@ -1,7 +1,7 @@
 import copy
 
 class SP_list:
-    def __init__(self, period, seq_eventInsIds):
-        self.period = period
-        self.seq_eventInsIds = copy.deepcopy(seq_eventInsIds)
+    def __init__(self, diff, time):
+        self.diff = diff
+        self.time = time
 

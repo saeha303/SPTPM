@@ -43,7 +43,7 @@ def TAR(config):
     FTP.FindKFrequentPatterns()
     # ====================================================================== Our code starts here
     FTP.Find1PeriodicPatterns()
-    # FTP.FindKPeriodicPatterns()
+    FTP.FindKPeriodicPatterns()
 
     if not os.path.exists(resultDir): 
         os.makedirs(resultDir) 

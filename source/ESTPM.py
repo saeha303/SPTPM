@@ -17,14 +17,14 @@ parser.add_argument('-mindist', '--mindistance', help='min distance', default=1)
 parser.add_argument('-maxdist', '--maxdistance', help='max distance', default=100)
 # ==========================================
 parser.add_argument('-minper', '--minper', help='minimum period', default=2)
-parser.add_argument('-minconf', '--minconf', help='minimum confidence', default=0.6)
+parser.add_argument('-minconf', '--minconf', help='minimum confidence', default=0.5)
 parser.add_argument('-minoccur', '--minoccur', help='minimum occurence', default=3)
 parser.add_argument('-granularity_of_G', '--granularity_of_G', help='granularity_of_G', default=3600)
 parser.add_argument('-fineness', '--fineness', help='fineness', default=24)
 
 
 parser.add_argument('-nosave', '--nosavepattern', help='save pattern to file', default=False, action='store_true')
-parser.add_argument('-details', '--details', help='write to file in details mode', default=True, action='store_true')
+parser.add_argument('-details', '--details', help='write to file in details mode', default=False, action='store_true')
 args = vars(parser.parse_args())
 
 
